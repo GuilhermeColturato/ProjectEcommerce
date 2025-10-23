@@ -2,55 +2,47 @@ package com.xco.spactshop.controller;
 
 
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.context.request.WebRequest;
 
-import javax.validation.ConstraintViolationException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.time.Instant;
 
 @ControllerAdvice
-@Component
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler
-    @ResponseBody
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, List<String>> handle(MethodArgumentNotValidException exception) {
-        return Collections.singletonMap(
-                "error",
-                exception
-                        .getBindingResult()
-                        .getFieldErrors()
-                        .stream()
-                        .map(FieldError::getDefaultMessage)
-                        .collect(Collectors.toList()));
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                Instant.now(),
+                ex.getMessage(),
+                request.getDescription(false)
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler
-    @ResponseBody
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, List<Map<String, Object>>> handle(ConstraintViolationException exception) {
-        return Collections.singletonMap(
-                "error",
-                exception
-                        .getConstraintViolations()
-                        .stream()
-                        .map(
-                                x -> {
-                                    HashMap<String, Object> error = new HashMap<>();
-                                    error.put("field", x.getPropertyPath().toString());
-                                    error.put("error", x.getMessage());
-                                    return error;
-                                })
-                        .collect(Collectors.toList()));
+    public static class ErrorResponse {
+        private Instant timestamp;
+        private String message;
+        private String path;
+
+        public ErrorResponse(Instant timestamp, String message, String path) {
+            this.timestamp = timestamp;
+            this.message = message;
+            this.path = path;
+        }
+
+        public Instant getTimestamp() {
+            return timestamp;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public String getPath() {
+            return path;
+        }
     }
 }

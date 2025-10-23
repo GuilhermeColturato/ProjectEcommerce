@@ -1,20 +1,15 @@
-package com.xco.spactshop.model;
-
-
-import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+package com.xco.spactshop.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-@Document(collection = "products")
-public class Product {
+public class ProductDto {
 
-    @Id
     private String id;
 
     @NotBlank
